@@ -1,18 +1,60 @@
 blueprint:
-  name: Motion Light Tutorial
-  description: Turn a light on based on detected motion
+  name: Shutter
+  description: Open/Close Shutter with blocking entidiy
   domain: automation
-
+  input:
+    remote:
+      name: Remote
+      description: IKEA remote to use
+      selector:
+        device:
+          integration: zha
+          model: TRADFRI open/close remote
+    cover:
+      name: Roller Blind
+      description: Roller blind to control
+      selector:
+        entity:
+          domain: cover
+    sunset_offset:
+      name: Offset to close Blind
+      description: Define offset to sunset
+      default: 60
+      selector:
+        number:
+          min: 0.0
+          max: 240.0
+          unit_of_measurement: minutes
+          mode: slider
+          step: 1.0
+    sunrise_offset:
+      name: Offset to open Blind
+      description: Define offset to sunrise
+      default: 45
+      selector:
+        number:
+          min: 0.0
+          max: 240.0
+          unit_of_measurement: minutes
+          mode: slider
+          step: 1.0
+mode: single
 trigger:
-  platform: state
-  entity_id: binary_sensor.motion_kitchen
-
+  - platform: event
+    event_type: zha_event
+    event_data:
+      device_id: !input "remote"
 action:
-  service: >
-    {% if trigger.to_state.state == "on" %}
-      light.turn_on
-    {% else %}
-      light.turn_off
-    {% endif %}
-  target:
-    entity_id: light.kitchen
+  - variables:
+      command: "{{ trigger.event.data.command }}"
+  - choose:
+      - conditions:
+          - "{{ command == 'up_open' }}"
+        sequence:
+          - service: cover.open_cover
+            entity_id: !input cover
+      - conditions:
+          - "{{ command == 'down_close' }}"
+        sequence:
+          - service: cover.close_cover
+            entity_id: !input cover
