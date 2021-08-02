@@ -16,6 +16,13 @@ blueprint:
       selector:
         entity:
           domain: cover
+    block:
+      name: Blocking Device
+      description: Device that will block the automation
+      selector:
+        entity:
+          domain: binary_sensor
+
     sunset_offset:
       name: Offset to close Blind
       description: Define offset to sunset
